@@ -9,12 +9,15 @@ import java.util.Iterator;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableModel;
 
@@ -66,6 +69,16 @@ import uk.ac.starlink.table.gui.StarTableModel;
         serverList=list;
         populate();
     }
+    
+    ServerPopupTable( JTable table) {
+        super(); 
+      //  DefaultTableModel model =  (DefaultTableModel) this.getModel();     
+        DefaultTableModel tmod = (DefaultTableModel) table.getModel();
+        this.setModel(tmod);
+        updateServerTable();
+       
+    }
+    
     
 
     /* 
@@ -185,6 +198,19 @@ import uk.ac.starlink.table.gui.StarTableModel;
       //  this.setStarTable(table, false);
         populate();        
     }
+    
+    /*
+     * updateServers(JTable table)
+     * fills the table with the values from a JTable
+     */
+
+    public void updateServers(JTable table ) {
+        DefaultTableModel tmod = (DefaultTableModel) table.getModel();
+        this.setModel(tmod);
+        updateServerTable();
+    }
+  
+   
 
     public void setServerList(SSAServerList list) {
         serverList = list;
@@ -249,7 +275,11 @@ import uk.ac.starlink.table.gui.StarTableModel;
          
      }
      public String getAccessURL(int row) {
-         return (String) getModel().getValueAt(row, ACCESSURL_INDEX);
+         return (String) getModel().getValueAt(row, ACCESSURL_INDEX).toString();
+         
+     }
+     public String getTitle(int row) {
+         return (String) getModel().getValueAt(row, TITLE_INDEX);
          
      }
 

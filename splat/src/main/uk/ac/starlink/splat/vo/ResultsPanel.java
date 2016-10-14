@@ -65,18 +65,21 @@ import uk.ac.starlink.votable.VOTableWriter;
 public class ResultsPanel extends JPanel implements ActionListener, MouseListener  {
  
    
-    private JTabbedPane resultsPane;
+    protected JTabbedPane resultsPane;
+    protected JPanel controlPanel = null;
     private boolean dataLinkEnabled = false;
-    private JButton displaySelectedButton;
-    private JButton displayAllButton;
-    private JButton downloadSelectedButton;
-    private JButton downloadAllButton;
-    private JButton deselectVisibleButton;
-    private JButton deselectAllButton;
+    protected JButton displaySelectedButton;
+    protected JButton displayAllButton;
+    protected JButton downloadSelectedButton;
+    protected JButton downloadAllButton;
+    protected JButton deselectVisibleButton;
+    protected JButton deselectAllButton;
     private JToggleButton dataLinkButton;
-    private SSAQueryBrowser ssaQueryBrowser;
-    private ObsCorePanel obsQueryBrowser;
-    private JPopupMenu popupMenu;
+    private SSAQueryBrowser ssaQueryBrowser=null;
+    private ObsCorePanel obsQueryBrowser=null;
+  //  protected LineBrowser slQueryBrowser=null;
+
+    protected JPopupMenu popupMenu;
    
     /**
      * @uml.property  name="dataLinkFrame"
@@ -86,29 +89,30 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
 
  
 
+    public ResultsPanel() {
+        
+    }
     
     public ResultsPanel( JTabbedPane resultsPane, SSAQueryBrowser browser ) {
         this.resultsPane=resultsPane;
         this.ssaQueryBrowser=browser;
-        this.obsQueryBrowser=null;
+     
         initComponents();
+        popupMenu = makeSpecPopup();
+        
     }
     
-  /*  public ResultsPanel( /*JTabbedPane resultsPane* / ObsCorePanel browser ) {
-        //this.resultsPane=resultsPane;
-        this.obsQueryBrowser=browser;
-        this.ssaQueryBrowser=null;
-        initComponents();
-    }*/
     
     public ResultsPanel(ObsCorePanel browser) {
         this.obsQueryBrowser=browser;
-        this.ssaQueryBrowser=null;
+ 
         initComponents();
-       
+        popupMenu = makeSpecPopup();       
     }
 
-    private void initComponents() {
+    
+
+    protected void initComponents() {
         this.setLayout(new GridBagLayout());
         this.setBorder ( BorderFactory.createTitledBorder( "Query results:" ) );
         this.setToolTipText( "Results of query to the current list of services. One table per service" );
@@ -138,7 +142,18 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         });
         this.add( resultsPane , gbc);
     
-     
+        gbc.gridx=0;
+        gbc.gridy=1;
+        gbc.weighty=0;
+        gbc.anchor = GridBagConstraints.PAGE_END;
+        gbc.fill=GridBagConstraints.HORIZONTAL;
+        if (controlPanel == null)
+            controlPanel=initControlPanel();
+        add( controlPanel, gbc );
+    }
+    
+    private JPanel initControlPanel() 
+    {
         JPanel controlPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbcontrol = new GridBagConstraints();
         gbcontrol.gridx=0;
@@ -212,13 +227,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      //   controlPanel2.add( deselectAllButton );
         gbcontrol.gridx=6;
         controlPanel.add( dataLinkButton, gbcontrol );
-        gbc.gridx=0;
-        gbc.gridy=1;
-        gbc.weighty=0;
-        gbc.anchor = GridBagConstraints.PAGE_END;
-        gbc.fill=GridBagConstraints.HORIZONTAL;
-        this.add( controlPanel, gbc );
-        popupMenu = makeSpecPopup();
+       
+        return controlPanel;
      
     }
 
@@ -307,17 +317,22 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     protected void displaySpectra( boolean selected, boolean display,
             StarJTable table, int row )
     {
-      StarJTable currentTable = null;
-      if (table == null) {
-          JScrollPane pane = (JScrollPane) resultsPane.getSelectedComponent();
-          currentTable = (StarJTable) pane.getViewport().getView();
-      } else {
-          currentTable=table;
-      }
+     
       if (obsQueryBrowser!=null)
-          obsQueryBrowser.displaySpectra(selected, display, currentTable, row);
+          obsQueryBrowser.displaySpectra(selected, display, getCurrentTable(table), row);
       if (ssaQueryBrowser!=null)
-          ssaQueryBrowser.displaySpectra(selected, display, currentTable, row);
+          ssaQueryBrowser.displaySpectra(selected, display, getCurrentTable(table), row);
+    }
+    
+    protected StarJTable  getCurrentTable(StarJTable table) 
+    {
+       
+        if (table == null) {
+            JScrollPane pane = (JScrollPane) resultsPane.getSelectedComponent();
+            return (StarJTable) pane.getViewport().getView();
+        } else {
+             return table;
+        }        
     }
 
     
@@ -330,10 +345,12 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      */
     protected void deselectSpectra( boolean all )
     {
-      //if (obsQueryBrowser!=null)
-      //    obsQueryBrowser.deselectSpectra(all);
+      
      
-      if (obsQueryBrowser!=null) {
+ 
+      if (ssaQueryBrowser!=null) 
+          ssaQueryBrowser.deselectSpectra(all, resultsPane.getSelectedComponent());
+      else {
           if (all ) {
               for (int i=0;i<resultsPane.getTabCount(); i++) {
                   JScrollPane pane = (JScrollPane) resultsPane.getComponentAt(i);
@@ -346,8 +363,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
               table.clearSelection();
           }
       }
-      if (ssaQueryBrowser!=null)
-          ssaQueryBrowser.deselectSpectra(all, resultsPane.getSelectedComponent());
+      
     }
     
     /**
@@ -419,6 +435,14 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         resultsPane.addTab(shortName, resultScroller );       
     }
     
+    protected void addTab(String shortName, StarPopupTable table, JPopupMenu popupmenu)
+    {
+        table.setComponentPopupMenu(popupmenu);
+        table.configureColumnWidths(200, table.getRowCount());
+        JScrollPane resultScroller=new JScrollPane(table); 
+        resultsPane.addTab(shortName, resultScroller );       
+    }
+  
     protected void addTab(String shortName, ImageIcon icon, StarPopupTable table)
     {
         table.setComponentPopupMenu(popupMenu);

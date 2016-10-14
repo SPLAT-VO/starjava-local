@@ -1,4 +1,12 @@
 1 Starlink SPLAT news.
+
+
+   3.11-4
+   ======
+   - updated SAMP icon
+   - improvement on handling remote files (detecting file type, compression)
+   - Bug fix: sending SAMP results table
+   
    3.11-3
    ======
    - Improvements in the ObsCore interface

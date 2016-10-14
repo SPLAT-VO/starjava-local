@@ -64,6 +64,7 @@ import uk.ac.starlink.splat.util.ConstrainedList.ConstraintType;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
@@ -853,7 +854,11 @@ public class SpecDataFactory
             if ( starTable.getRowCount() == 0 )
                 throw new Exception( "The TABLE is empty");
             if ( starTable != null ) {
-                return new TableSpecDataImpl( starTable );
+                //is it a line id table?
+                if (islineIDTable(starTable))
+                    return new LineIDTableSpecDataImpl( starTable );
+                else 
+                    return new TableSpecDataImpl( starTable );
             }
             
         }
@@ -887,6 +892,14 @@ public class SpecDataFactory
         return impl;
     }
 
+    private boolean islineIDTable(StarTable starTable) {
+        String s="";
+        DescribedValue sp = starTable.getParameterByName("SERVICE_PROTOCOL");
+        if (sp != null) 
+             s=sp.getInfo().getDescription().toLowerCase();
+        return (s.contains("slap")) ;
+    }
+
     /**
      * Make a suitable SpecData for a given implementation. If the spectrum is
      * remote and not a line identifier, then a {@link RemoteSpecData} object
@@ -899,6 +912,11 @@ public class SpecDataFactory
         SpecData specData = null;
         if ( impl instanceof LineIDTXTSpecDataImpl ) {
             specData = new LineIDSpecData( (LineIDTXTSpecDataImpl) impl );
+            LocalLineIDManager.getInstance()
+                .addSpectrum( (LineIDSpecData) specData );
+        }
+        else if ( impl instanceof LineIDTableSpecDataImpl ) {
+            specData = new LineIDSpecData( (LineIDTableSpecDataImpl) impl );
             LocalLineIDManager.getInstance()
                 .addSpectrum( (LineIDSpecData) specData );
         }
