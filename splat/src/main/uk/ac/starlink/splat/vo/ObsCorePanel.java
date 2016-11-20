@@ -236,8 +236,12 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
        
         queryParams = queryPrefix;
         
-        serverTable=new ServerPopupTable();
-        getServers();
+        try {
+            serverTable=new ServerPopupTable(new ObsCoreServerList());
+        } catch (SplatException e) {
+            // could not read file with existing serverlist, generate new one
+            getServers(); 
+        }
         
         JPopupMenu serverPopup = makeServerPopup();
         serverTable.setComponentPopupMenu(serverPopup);
@@ -574,7 +578,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     private void getServers() {
 
         StarTable st = queryRegistry();
-        serverTable.updateServers(st);
+        serverTable = new ServerPopupTable(new ObsCoreServerList(st));
+       
      
     }
     
@@ -583,7 +588,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         StarTable table;
         try {
             
-            table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog("ObsCore"), new StarTableFactory() );
+            table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog(SplatRegistryQuery.OBSCORE), new StarTableFactory() );
          }
         catch ( IOException e ) {
             ErrorDialog.showError( this, "Registry query failed", e );
@@ -1223,15 +1228,9 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
      * added to addServerWIndow
      */
     public void propertyChange(PropertyChangeEvent pvt)
-    {
-       
-        DefaultTableModel model = (DefaultTableModel) serverTable.getModel();
-        
-        model.addRow(new Object[]{ addServerWindow.getShortName(), addServerWindow.getServerTitle(),addServerWindow.getDescription(),"","","", addServerWindow.getAccessURL()});
-        serverTable.setModel( model );
-        
-        // TODO: and146: save the model
-      
+    {        
+        SSAPRegResource reg = new SSAPRegResource(addServerWindow.getShortName(), addServerWindow.getServerTitle(), addServerWindow.getDescription(), addServerWindow.getAccessURL());
+        serverTable.addNewServer(reg);      
     }
     
 
