@@ -402,7 +402,7 @@ public class SSAServerList
     protected void saveServers()
         throws SplatException
     {
-        saveServers( Utilities.getConfigFile( configFile ) );
+    	saveServers( Utilities.getConfigFile( configFile ) );
     }
 
     /**

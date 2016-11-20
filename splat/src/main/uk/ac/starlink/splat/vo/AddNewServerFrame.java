@@ -305,6 +305,7 @@ implements ActionListener, ItemListener
         }
         // if everything OK (status changed) fire an event - this will cause the
         // new resource to be added to the list
+        
         statusChange.firePropertyChange("status", oldstatus, status);
         status=0;
     }

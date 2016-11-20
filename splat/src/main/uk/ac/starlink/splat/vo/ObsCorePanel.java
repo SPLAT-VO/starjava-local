@@ -95,6 +95,10 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     private static Logger logger =
         Logger.getLogger( "uk.ac.starlink.splat.vo.ObsCorePanel" );
     
+    /* Constants */
+    private static final String DATA_PRODUCT_DEFAULT_PARAM = "dataproduct_type=\'spectrum\'";
+    private static final String DATA_PRODUCT_TYPE_ACTION_LISTENER = "DATAPRODUCTTYPE";
+    
     /** UI preferences. */
     protected static Preferences prefs = 
             Preferences.userNodeForPackage( ObsCorePanel.class );
@@ -156,6 +160,9 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     /** The extended query text */
     protected String extendedQueryText = null;
     
+    /** Data product type */
+    protected JComboBox dataProductTypeBox = null;
+    
 
     /** Object name */
     protected JTextField nameField = null;
@@ -181,6 +188,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
  
     private String[] parameters = {"", "target_name", "s_ra", "s_dec", "s_fov", "s_region", "s_resolution", 
                                   "t_min", "t_max", "t_exptime", "em_min", "em_max", "em_res_power", "pol_states", "calib_level"};
+    private String[] dataProductTypes = {"spectrum", "timeseries"};
     private String[] comparisons = {"", "=", "!=", "<>", "<", ">", "<=", ">="};
     private String[] conditions = {"", "AND", "OR"};
     private String queryPrefix = "SELECT TOP 10000 * from ivoa.Obscore WHERE dataproduct_type=\'spectrum\' ";
@@ -867,6 +875,24 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                 "in ISO 8601 format " +
                 "(e.g 2008-10-15T20:48Z)" );
         
+        // Data product type dropdown
+        //TODO
+        JLabel dataProductTypeLabel = new JLabel( "Data\nproduct:" );
+        
+        dataProductTypeBox = new JComboBox(dataProductTypes) ;
+        dataProductTypeBox.addActionListener(this);
+        dataProductTypeBox.setActionCommand( DATA_PRODUCT_TYPE_ACTION_LISTENER );
+        
+        JPanel dataProductTypePanel = new JPanel( new GridBagLayout() );
+        GridBagConstraints gbc7 = new GridBagConstraints();
+        gbc7.weightx = 1.0;
+        gbc7.fill = GridBagConstraints.HORIZONTAL;
+        dataProductTypePanel.add( dataProductTypeBox, gbc7 );
+        
+        layouter.add(dataProductTypeLabel,false);
+        layouter.add(dataProductTypePanel, true);
+        
+        
         //
         
         // format and calibration options:
@@ -1176,15 +1202,14 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
             queryParams=queryText; 
         }
         else {   // adql expression search
-            String str=querytext.getText();
+        	String str=querytext.getText();
             if (str.endsWith(" AND")) {
                 str = str.substring(0, str.lastIndexOf("AND"));
             }
             queryParams=str;
         }
-        
+        queryParams=queryParams.replace(DATA_PRODUCT_DEFAULT_PARAM, "dataproduct_type=\'" + dataProductTypeBox.getSelectedItem().toString() + "\'");
         logger.info( "QUERY= "+queryParams);
-        
         makeQuery(serverTable.getSelectedRows(), queryParams);
        
         
@@ -1204,6 +1229,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         
         model.addRow(new Object[]{ addServerWindow.getShortName(), addServerWindow.getServerTitle(),addServerWindow.getDescription(),"","","", addServerWindow.getAccessURL()});
         serverTable.setModel( model );
+        
+        // TODO: and146: save the model
       
     }
     
