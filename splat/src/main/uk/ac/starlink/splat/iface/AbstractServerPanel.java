@@ -162,7 +162,8 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         int option = JOptionPane.showConfirmDialog(this, "No previously saved services list found. Query the Registry?", 
                 "Not Found", JOptionPane.YES_NO_OPTION);
         if (option == JOptionPane.YES_OPTION) {
-            StarTable table = makeRegistryQuery();    
+            StarTable table = makeRegistryQuery();   
+            updateServers(table);
             return table;
         } else
             return null;
